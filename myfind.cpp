@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 #ifndef PATH_MAX
 #define PATH_MAX 255
@@ -13,12 +14,12 @@
 using namespace std;
 
 
-int listFiles(char* currentWorkingDirectory, DIR* dirpath, dirent* direntry){
+int listFiles(char* workingDirectory, DIR* dirpath, dirent* direntry){
 
-    getcwd(currentWorkingDirectory, PATH_MAX);
-    printf("Current working directory: %s\n", currentWorkingDirectory);
+    getcwd(workingDirectory, PATH_MAX);
+    printf("Current working directory: %s\n", workingDirectory);
 
-    if((dirpath = opendir(currentWorkingDirectory)) == NULL)
+    if((dirpath = opendir(workingDirectory)) == NULL)
     {
         perror("Failed to open directory");
         return -1;
@@ -68,6 +69,8 @@ int main(int argc, char **argv)
 {
     //bool optR = false;
     //bool opti = false;
+
+    vector<char> filesToFind;
     
     getOptions(argc, argv);
 
@@ -75,10 +78,9 @@ int main(int argc, char **argv)
     {
         cout << "argv[" << i << "]: " << argv[i] << endl;
     }
-    
 
-    char currentWorkingDirectory[PATH_MAX];
-    if (getcwd(currentWorkingDirectory, PATH_MAX) == NULL)
+    char workingDirectory[PATH_MAX];
+    if (getcwd(workingDirectory, PATH_MAX) == NULL)
     {
         perror("Failed to get current working directory");
         return 1;
@@ -87,7 +89,7 @@ int main(int argc, char **argv)
     struct dirent *direntry; //struct dirent stores name and type of the directory entry (among other things)
     DIR *dirpath;
 
-    if ((dirpath = opendir(currentWorkingDirectory)) == NULL)
+    if ((dirpath = opendir(workingDirectory)) == NULL)
     {
         perror("Failed to open directory");
         return -1;
@@ -95,10 +97,21 @@ int main(int argc, char **argv)
 
     direntry = readdir(dirpath);
 
-    listFiles(currentWorkingDirectory, dirpath, direntry);
-    listFiles(currentWorkingDirectory, dirpath, direntry);
-    listFiles(currentWorkingDirectory, dirpath, direntry);
-    listFiles(currentWorkingDirectory, dirpath, direntry);
+    listFiles(workingDirectory, dirpath, direntry);
+    listFiles(workingDirectory, dirpath, direntry);
+    listFiles(workingDirectory, dirpath, direntry);
+    listFiles(workingDirectory, dirpath, direntry);
+
+    if((dirpath = opendir("./myfind.cpp")) == NULL)
+    {
+        perror("Failed to open directory");
+        return -1;
+    }
+
+    direntry = readdir(dirpath);
+    
+    cout << direntry->d_name << " ";
+    cout << direntry->d_type << endl;
 
     return 0;
 }

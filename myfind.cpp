@@ -7,5 +7,13 @@
 
 int main(int argc, char** argv)
 {
+    char mycwd[PATH_MAX];
 
+    if (getcwd(mycwd, PATH_MAX) == NULL)
+    {
+        perror("Failed to get current working directory");
+        return 1;
+    }
+    printf("Current working directory: %s\n", mycwd);
+    return 0;
 }

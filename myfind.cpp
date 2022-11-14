@@ -29,7 +29,7 @@ int listFiles(char* workingDirectory, DIR* dirpath, dirent* direntry){
     while((direntry = readdir(dirpath)) != NULL)
     {
         cout << direntry->d_name << " ";
-        cout << direntry->d_type << endl; //d_type 4 == folder, d_type 8 == file
+        cout << to_string(direntry->d_type) << endl; //d_type 4 == folder, d_type 8 == file
     }
     cout << endl;
 
@@ -69,8 +69,6 @@ int main(int argc, char **argv)
 {
     //bool optR = false;
     //bool opti = false;
-
-    vector<char> filesToFind;
     
     getOptions(argc, argv);
 
@@ -102,7 +100,7 @@ int main(int argc, char **argv)
     listFiles(workingDirectory, dirpath, direntry);
     listFiles(workingDirectory, dirpath, direntry);
 
-    if((dirpath = opendir("./myfind.cpp")) == NULL)
+    if((dirpath = opendir("./")) == NULL)
     {
         perror("Failed to open directory");
         return -1;
@@ -111,7 +109,7 @@ int main(int argc, char **argv)
     direntry = readdir(dirpath);
     
     cout << direntry->d_name << " ";
-    cout << direntry->d_type << endl;
+    cout << to_string(direntry->d_type) << endl;
 
     return 0;
 }

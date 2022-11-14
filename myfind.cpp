@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     listFiles(workingDirectory, dirpath, direntry);
     listFiles(workingDirectory, dirpath, direntry);
 
-    if((dirpath = opendir("./")) == NULL)
+    if((dirpath = opendir("..")) == NULL)
     {
         perror("Failed to open directory");
         return -1;

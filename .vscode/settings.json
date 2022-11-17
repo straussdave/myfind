@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/david/VerteilteSysteme/myfind-main/myfind-main",
+            "binaryPath": "/home/david/VerteilteSysteme/myfind-main/myfind-main/myfind",
+            "binaryArgs": []
+        }
+    ]
+}

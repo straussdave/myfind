@@ -9,8 +9,10 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-#include<sys/types.h>
-#include<sys/wait.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <bits/stdc++.h>
+#include <filesystem>
 
 #ifndef PATH_MAX
 #define PATH_MAX 255
@@ -18,80 +20,138 @@
 
 using namespace std;
 
-
-int listFiles(char* workingDirectory, DIR* dirpath, dirent* direntry){
-
-    getcwd(workingDirectory, PATH_MAX);
-    printf("Current working directory: %s\n", workingDirectory);
-
-    if((dirpath = opendir(workingDirectory)) == NULL)
-    {
-        perror("Failed to open directory");
-        return -1;
-    }
-
-    cout << "Files in current directory: " << endl;
-    while((direntry = readdir(dirpath)) != NULL)
-    {
-        cout << direntry->d_name << " ";
-        cout << to_string(direntry->d_type) << endl; //d_type 4 == folder, d_type 8 == file
-    }
-    cout << endl;
-
-    chdir(".."); //changes the current directory of the process to .. (which is the parent directory)
-    return 1;
-}
-
 bool file_exist(const char *fileName)
 {
     std::ifstream infile(fileName);
     return infile.good();
 }
 
-void myfork(const char* path, char* fileToFind){
+void myfork(const char* path, char* fileToFind, bool optI, bool optR){
     
     //seach for file in path
     //output if file exists and pid
-
     pid_t childpid;
-
+    DIR *dir; struct dirent *diread;
+    vector<char *> files;
+    
     childpid = fork();
+
+    char tmp[256];
+    getcwd(tmp, 256); //this gets the full current directory of the process and stores it in tmp
 
     if (childpid == -1)
     {
         perror("Failed to fork");
     }
-    else if(childpid == 0){
+    else if(childpid == 0)
+    {
         chdir(path);
-        if(file_exist(fileToFind))
+        if(file_exist(fileToFind) && !optI && !optR)
         {
-            cout << (long)getpid() << ": " << fileToFind << ": " << path << endl;
+            cout << (long)getpid() << ": " << fileToFind << ": " << tmp << endl;
+        }
+        else if(!optI && optR)
+        {
+            
+            if(file_exist(fileToFind))
+            {
+                cout << (long)getpid() << ": " << fileToFind << ": " << tmp << endl;
+            }
+            else
+            {
+            myfork("..", fileToFind, optI, optR);
+            }
+        }
+        else if (optI && !optR)
+        {
+            if ((dir = opendir(path)) != nullptr) 
+            {
+                while ((diread = readdir(dir)) != nullptr) 
+                {
+                    files.push_back(diread->d_name);
+                }       
+                closedir (dir);
+            }
+            else
+            {
+                wait(NULL);
+                kill((long)getpid(), SIGKILL);
+                return;
+            }
+
+            //file to find lower case
+            string ftf = fileToFind;
+            transform(ftf.begin(), ftf.end(), ftf.begin(), ::tolower);
+
+            for (string file : files) 
+            {
+                string realFile = file;
+                transform(file.begin(), file.end(), file.begin(), ::tolower);
+                int res = ftf.compare(file);
+                if(res == 0)
+                {
+                    cout << (long)getpid() << ": " << realFile << ": " << tmp << endl;
+                }
+            }
+        }
+        else if(optI && optR)
+        {
+            if ((dir = opendir(path)) != nullptr) 
+            {
+                while ((diread = readdir(dir)) != nullptr) 
+                {
+                    files.push_back(diread->d_name);
+                }
+                closedir(dir);
+            }
+            else
+            {
+                wait(NULL);
+                kill((long)getpid(), SIGKILL);
+                return;
+            }
+
+            //file to find lower case
+            string ftf = fileToFind;
+            transform(ftf.begin(), ftf.end(), ftf.begin(), ::tolower);
+
+            int res = -1;
+            for (string file : files) 
+            {
+                string realFile = file;
+                transform(file.begin(), file.end(), file.begin(), ::tolower);
+                res = ftf.compare(file);
+                if(res == 0)
+                {
+                    cout << (long)getpid() << ": " << realFile << ": " << tmp << endl;
+                }
+            }
+            if(res != 0)
+            {
+                myfork("..", fileToFind, optI, optR);
+            }
         }
 
         wait(NULL);
         kill((long)getpid(), SIGKILL);
     }
-
 }
 
-void getOptions(int argc, char **argv)
+
+void getoptions(int argc, char **argv)
 {
     const char* searchPath;
     int opt;
-    int counter = 0;
+    bool optR, optI = false;
     while((opt = getopt(argc, argv, "Ri")) != -1)
     {
         switch(opt)
         {
             case 'R': 
-                //optR = true; 
-                cout << "opt R specified" << endl;
-                counter++;
+                optR = true; 
                 continue;
             case 'i': 
-                //opti = true; 
-                cout << "opt i specified" << endl; 
-                counter++;
+                optI = true; 
                 continue;
             case '?': 
             default: 
@@ -100,77 +160,29 @@ void getOptions(int argc, char **argv)
                 break;
         }
     }
-    //cout << "number of options: " << counter << endl;
 
-    for(; optind < argc; optind++){     
+    for(; optind < argc; optind++)
+    {     
         string argString = string(argv[optind]);
         if(argString.find('/')<argString.length())
         {
             searchPath = argv[optind];
-            cout << searchPath << " is searchpath" << endl;
         }
         else
         {
-            myfork(searchPath, argv[optind]); //optI, optR
+            myfork(searchPath, argv[optind], optI, optR);
         }
     }
 }
 
 int main(int argc, char **argv)
 {
-    //bool optR = false;
-    //bool opti = false;
-
     //get all arguments
     //start new process for every file 
     //check if file exists in search path
     //output if seach was successfull or not
-
-
-
     
-    getOptions(argc, argv);
-
-    // for(int i = 0; i < argc; i++)
-    // {
-    //     cout << "argv[" << i << "]: " << argv[i] << endl;
-        
-    // // }
-
-    // char workingDirectory[PATH_MAX];
-    // if (getcwd(workingDirectory, PATH_MAX) == NULL)
-    // {
-    //     perror("Failed to get current working directory");
-    //     return 1;
-    // }
-
-    // struct dirent *direntry; //struct dirent stores name and type of the directory entry (among other things)
-    // DIR *dirpath;
-
-    // if ((dirpath = opendir(workingDirectory)) == NULL)
-    // {
-    //     perror("Failed to open directory");
-    //     return -1;
-    // }
-
-    // direntry = readdir(dirpath);
-
-    // listFiles(workingDirectory, dirpath, direntry);
-    // listFiles(workingDirectory, dirpath, direntry);
-    // listFiles(workingDirectory, dirpath, direntry);
-    // listFiles(workingDirectory, dirpath, direntry);
-
-    // if((dirpath = opendir("..")) == NULL)
-    // {
-    //     perror("Failed to open directory");
-    //     return -1;
-    // }
-
-    // direntry = readdir(dirpath);
-    
-    // cout << direntry->d_name << " ";
-    // cout << to_string(direntry->d_type) << endl;
-    
+    getoptions(argc, argv);
     
     return 0;
 }

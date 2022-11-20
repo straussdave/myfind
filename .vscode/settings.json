@@ -5,5 +5,9 @@
             "binaryPath": "/home/david/VerteilteSysteme/myfind-main/myfind-main/myfind",
             "binaryArgs": []
         }
-    ]
+    ],
+    "files.associations": {
+        "iostream": "cpp",
+        "ostream": "cpp"
+    }
 }

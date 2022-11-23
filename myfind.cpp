@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     }
 
     direntry = readdir(dirpath);
-    
+
     cout << direntry->d_name << " ";
     cout << to_string(direntry->d_type) << endl;
 
